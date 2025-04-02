@@ -40,6 +40,66 @@ function App() {
     setShowLogin(true);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const renderNavButtons = () => {
+    return (
+      <>
+        <button
+          onClick={() => {
+            setView('dashboard');
+            setIsMenuOpen(false);
+          }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
+            view === 'dashboard'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" />
+          Dashboard
+        </button>
+        <button
+          onClick={() => {
+            setView('study');
+            setIsMenuOpen(false);
+          }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
+            view === 'study'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          Study
+        </button>
+        <button
+          onClick={() => {
+            setView('decks');
+            setIsMenuOpen(false);
+          }}
+          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
+            view === 'decks'
+              ? 'bg-blue-100 text-blue-700'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Library className="w-4 h-4" />
+          Decks
+        </button>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto text-gray-500 hover:text-gray-700"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
+      </>
+    );
+  };
+
   if (session) {
     return (
       <div className="min-h-screen bg-gray-100">
@@ -96,6 +156,7 @@ function App() {
               supabaseClient={supabase}
               appearance={{ theme: ThemeSupa }}
               providers={['google']}
+              redirectTo={import.meta.env.VITE_SITE_URL}
               theme="default"
             />
           </div>
@@ -105,66 +166,6 @@ function App() {
   }
 
   return <LandingPage onLoginClick={handleLoginClick} />;
-
-  function renderNavButtons() {
-    return (
-      <>
-        <button
-          onClick={() => {
-            setView('dashboard');
-            setIsMenuOpen(false);
-          }}
-          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
-            view === 'dashboard'
-              ? 'bg-blue-100 text-blue-700'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <LayoutDashboard className="w-4 h-4" />
-          Dashboard
-        </button>
-        <button
-          onClick={() => {
-            setView('study');
-            setIsMenuOpen(false);
-          }}
-          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
-            view === 'study'
-              ? 'bg-blue-100 text-blue-700'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          Study
-        </button>
-        <button
-          onClick={() => {
-            setView('decks');
-            setIsMenuOpen(false);
-          }}
-          className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto ${
-            view === 'decks'
-              ? 'bg-blue-100 text-blue-700'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <Library className="w-4 h-4" />
-          Decks
-        </button>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium w-full sm:w-auto text-gray-500 hover:text-gray-700"
-        >
-          <LogOut className="w-4 h-4" />
-          Logout
-        </button>
-      </>
-    );
-  }
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
 }
 
 export default App;

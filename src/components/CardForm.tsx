@@ -1,67 +1,141 @@
-import React, { useState } from 'react';
-import { useStore } from '../store/useStore';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import type { Database } from '../types/supabase';
 
-export const CardForm: React.FC = () => {
-  const addCard = useStore(state => state.addCard);
+type Card = Database['public']['Tables']['flashcards']['Row'];
+
+interface CardFormProps {
+  deckId: string;
+  onCardAdded?: () => void;
+  onCancel?: () => void;
+  initialData?: Card;
+}
+
+export const CardForm: React.FC<CardFormProps> = ({ 
+  deckId, 
+  onCardAdded, 
+  onCancel,
+  initialData 
+}) => {
   const [formData, setFormData] = useState({
     front: '',
     verse: '',
     sentence: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        front: initialData.front,
+        verse: initialData.verse,
+        sentence: initialData.sentence,
+      });
+    }
+  }, [initialData]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addCard(formData);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      console.error('No authenticated user found');
+      return;
+    }
+
+    if (initialData) {
+      const { error } = await supabase
+        .from('flashcards')
+        .update({
+          ...formData,
+          user_id: user.id,
+        })
+        .eq('id', initialData.id);
+
+      if (error) {
+        console.error('Error updating flashcard:', error);
+        return;
+      }
+    } else {
+      const { error } = await supabase
+        .from('flashcards')
+        .insert([{
+          ...formData,
+          deck_id: deckId,
+          user_id: user.id,
+        }]);
+
+      if (error) {
+        console.error('Error creating flashcard:', error);
+        return;
+      }
+    }
+
     setFormData({ front: '', verse: '', sentence: '' });
+    onCardAdded?.();
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Add New Flashcard</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Word/Expression</label>
-            <input
-              type="text"
-              value={formData.front}
-              onChange={e => setFormData(prev => ({ ...prev, front: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
-              required
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Word/Expression
+        </label>
+        <input
+          type="text"
+          value={formData.front}
+          onChange={e => setFormData(prev => ({ ...prev, front: e.target.value }))}
+          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          placeholder="Enter a word or expression"
+          required
+        />
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Translation/Hint</label>
-            <input
-              type="text"
-              value={formData.verse}
-              onChange={e => setFormData(prev => ({ ...prev, verse: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
-              required
-            />
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Translation/Hint
+        </label>
+        <input
+          type="text"
+          value={formData.verse}
+          onChange={e => setFormData(prev => ({ ...prev, verse: e.target.value }))}
+          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          placeholder="Enter the translation or a hint"
+          required
+        />
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Example Sentence</label>
-            <textarea
-              value={formData.sentence}
-              onChange={e => setFormData(prev => ({ ...prev, sentence: e.target.value }))}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
-              rows={3}
-              required
-            />
-          </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Example Sentence
+        </label>
+        <input
+          type="text"
+          value={formData.sentence}
+          onChange={e => setFormData(prev => ({ ...prev, sentence: e.target.value }))}
+          className="w-full rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring focus:ring-blue-200"
+          placeholder="Enter an example sentence"
+          required
+        />
+      </div>
 
+      <div className="flex justify-end gap-2">
+        {onCancel && (
           <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
           >
-            Add Card
+            Cancel
           </button>
-        </div>
-      </form>
-    </div>
+        )}
+        <button
+          type="submit"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          {initialData ? 'Save Changes' : 'Add Card'}
+        </button>
+      </div>
+    </form>
   );
 };
