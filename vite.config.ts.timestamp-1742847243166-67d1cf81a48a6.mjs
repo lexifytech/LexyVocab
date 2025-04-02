@@ -5,7 +5,10 @@ var vite_config_default = defineConfig({
   plugins: [react()],
   optimizeDeps: {
     exclude: ["lucide-react"]
-  }
+  },
+  server: {
+    port: 3000, // Substitua 3000 pela porta desejada
+  },
 });
 export {
   vite_config_default as default

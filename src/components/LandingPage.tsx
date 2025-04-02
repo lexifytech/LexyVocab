@@ -1,22 +1,19 @@
 import React from 'react';
-import { Brain, BookOpen, Library, Sparkles } from 'lucide-react';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { supabase } from '../lib/supabase';
+import { BookOpen, Library, Sparkles } from 'lucide-react';
+import { Navbar } from './Navbar';
 
-export const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onLoginClick: () => void;
+}
+
+export const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <Navbar onLoginClick={onLoginClick} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="pt-16 pb-20">
           <div className="text-center">
-            <div className="flex items-center justify-center mb-8">
-              <Brain className="h-16 w-16 text-blue-500" />
-              <h1 className="ml-4 text-4xl sm:text-5xl font-bold text-gray-900">
-                LexyVocab
-              </h1>
-            </div>
-            <p className="mt-4 text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto">
               Master vocabulary effortlessly with our intelligent flashcard system
             </p>
           </div>
@@ -55,15 +52,6 @@ export const LandingPage: React.FC = () => {
                 Monitor your learning progress and stay motivated
               </p>
             </div>
-          </div>
-
-          <div className="mt-16 max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
-            <Auth
-              supabaseClient={supabase}
-              appearance={{ theme: ThemeSupa }}
-              providers={['google']}
-              theme="default"
-            />
           </div>
         </div>
       </div>
